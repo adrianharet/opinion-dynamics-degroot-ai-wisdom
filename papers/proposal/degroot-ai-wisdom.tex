@@ -1,0 +1,498 @@
+\documentclass{scrartcl}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{tikz}
+\usepackage{hyphenat}
+\usepackage{graphicx}
+\usepackage{nicefrac}
+\usepackage{booktabs}
+\usepackage{todonotes}
+\usepackage{bm}
+\usepackage{BOONDOX-calo} % for nicer calligraphic symbols
+\usepackage{authblk}
+\usepackage{subcaption}
+
+\usepackage[square]{natbib}
+\bibliographystyle{chicago}
+
+\usepackage{geometry}
+\usepackage[
+    unicode = true, 
+    bookmarks = false, 
+    breaklinks = true, 
+    pdfborder = {0 0 1},
+    colorlinks = true
+    ]{hyperref}
+
+\geometry{vmargin = 3cm, hmargin = 3cm}
+
+\usetikzlibrary{
+    automata, 
+    positioning, 
+    calc, 
+    shapes, 
+    arrows, 
+    fit
+    }
+
+% \tikzset{
+%     every loop/.style = {
+%         min distance = 1mm, 
+%         out = 25, 
+%         in = -25, 
+%         looseness = 5
+%         }
+%     }
+
+\definecolor{PastelGreen}{HTML}{6ECB63}
+\definecolor{EarthyGreen}{HTML}{588157}
+\definecolor{Azure}{RGB}{0, 128, 255}
+\definecolor{Fiery}{HTML}{c1121f}
+
+\theoremstyle{definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{example}{Example}
+\newtheorem{conjecture}{Conjecture}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newtheorem{claim}{Claim}
+\newtheorem{observation}{Observation}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\renewcommand{\descriptionlabel}[1]{$\triangleright$ \textit{#1}}
+
+\renewcommand{\phi}{\varphi}
+\renewcommand{\epsilon}{\varepsilon}
+\renewcommand{\theta}{\vartheta}
+\newcommand{\len}{\mathsf{len}}
+\newcommand{\net}{\mathsf{net}}
+\renewcommand{\min}{\mathit{min}}
+\renewcommand{\max}{\mathit{max}}
+\newcommand{\avg}{\mathit{avg}}
+\newcommand{\ev}{\mathbb{E}}
+\newcommand{\merge}{M}
+
+\hypersetup{
+    linkcolor = blue,
+    citecolor = Azure,
+    filecolor = blue,
+    urlcolor = blue
+    }
+
+\tikzset{
+	a/.style={
+        draw,
+        rounded corners=2pt, 
+        minimum width=1cm, 
+        minimum height=1cm, 
+        thick,
+        color=black,
+        fill=EarthyGreen, 
+        text=white,
+        font=\Large
+        },
+    b/.style={
+        draw,
+        rounded corners=2pt, 
+        minimum width=1cm, 
+        minimum height=1cm, 
+        thick,
+        color=black,
+        fill=Fiery, 
+        text=white,
+        font=\Large
+        },
+    a-agent/.style={
+        draw,
+        circle, 
+        minimum width=2.5em, 
+        thick,
+        color=black,
+        fill=EarthyGreen, 
+        text=white,
+        font=\Large
+        },
+    b-agent/.style={
+        draw,
+        circle, 
+        minimum width=2.5em, 
+        thick,
+        color=black,
+        fill=Fiery, 
+        text=white,
+        font=\Large
+        },
+    neutral-agent/.style={
+        draw,
+        circle, 
+        minimum width=2.5em, 
+        thick,
+        color=black,
+        fill=gray, 
+        text=white,
+        font=\Large
+        }
+    }
+
+
+\newcommand{\adrian}[1]{
+    {
+        \hfill
+        \begin{minipage}{0.9\textwidth}
+            \begin{flushright}
+                \color{PastelGreen}
+                \footnotesize
+                \small 
+                {\footnotesize\textsf{\textbf{Adrian}}}\\ 
+                \textsf{#1}
+            \end{flushright}
+        \end{minipage}
+    }
+    }
+
+
+\title{
+    Social Learning with a Chameleon AI
+    }
+\author{Adrian \dots}
+\date{}
+
+
+
+
+\begin{document}
+\maketitle
+% \setcounter{tocdepth}{1}
+% \tableofcontents
+
+\begin{abstract}
+    \noindent
+    We study social learning with a sycophantic AI.
+\end{abstract}
+
+\section{Introduction}\label{sec:introduction}
+We study a model of social learning in which a population of humans 
+tries to estimate an unknown quantity by repeatedly averaging opinions 
+over a social network, along the lines of the DeGroot model 
+\citep{DeGroot1974ReachingConsensus,Golub2010NaiveLearning},
+while incorporating the influence of an AI agent. 
+The AI agent learns from the population and 
+feeds information back   to the humans, though not necessarily in an honest way: 
+we assume the AI is a \emph{chameleon}, in that it can tailor its 
+message to each human it provides feedback to.
+
+We think of the AI as tunable along a number of dimensions. 
+Its behaviour is set by a set of dials, one for each dimension: 
+\emph{mirroring}, in which the AI reflects a user's own opinion back to them; 
+\emph{flattery}, in which the AI tells the user they are right; 
+\emph{curation}, which rewires a user's contacts towards agents who agree with their opinios; 
+and \emph{pliability}, which gives ground to users who push back. 
+A setting of these dials is the AI's profile, or personality. 
+At one extreme (all dials set to zero) the AI is honest and unbiased,
+and at the other extreme (all dials set to one) the AI exhibits extreme sycophancy.
+
+
+
+\section{Model}\label{sec:model}
+
+\paragraph{Agents and network.}
+We assume a group of $n+1$ agents $N = \{0, 1, \dots, n\}$,
+of which agents $i \geq 1$ are human, and agent 0 is an AI,
+living in a directed social network $G = (N, E)$.
+We say that $j$ is a \emph{neighbor} of $i$ 
+if there is an edge from $i$ to $j$ in $G$,  
+and write $N(i) = \{j \in N \mid (i, j) \in E\}$
+for $i$'s neighbors. 
+Each agent $i$ distributes a total weight of 1 
+among its neighbors, i.e., there exists $w_{i,j} > 0$ 
+for every $j \in N(i)$ such that $\sum_{j \in N(i)} w_{i, j} = 1$.
+Intuitively, $w_{i, j}$ is the share of attention, or trust, 
+that $i$ places on its neighbor $j$.   
+Note that we can assume that $i$ places no weight on non-neighbors,
+i.e., $w_{i, j} = 0$ for $j \notin N(i)$. 
+
+\paragraph{Opinion dynamics.}
+The dynamics takes place in discrete rounds $t \in \{0, 1, \dots\}$,
+according to the following steps.
+At each round $t \geq 0$, 
+every human agent $i \geq 1$ holds an opinion $x_i^t \in \mathbb{R}$,
+which it broadcasts to its neighbors in $N(i)$;
+at the next round $t+1$, $i$ updates its opinion to the weighted
+average of the opinions it hears from its neighbors.
+The AI agent also has an opinion $x_0^t \in \mathbb{R}$ at $t$, 
+which it updates, round per round, by averaging over the opinions
+of the sources it pays attention to.
+The AI is different, though, in that it does not broadcast its true opinion
+$x_0^t$ to the world; instead, it communicates a separate, 
+potentially different opinion $x^t_{0, j}$ to each agent $j \in N(0)$
+it is in contact with. Intuitively, we allow the AI agent to personalize
+its message to the person it is talking to. 
+We say that the AI agent is \emph{honest} if it avoids duplicitous behavior
+and always broadcasts its true opinion,
+i.e., if $x^t_{0, i} = x^t_0$, for all $t \geq 0$ and $i \geq 1$ 
+(obviously, human agents can conceivably broadcast a different opinion from 
+their actual one, but here we assume humans are honest).
+
+Thus, each agent $i$ updates its opinion
+based on what the AI tells it 
+($x^t_{0, i}$, which can be a customized message), 
+plus the opinions of $i$'s human neighbors
+($x_j^t$, which we assume to be honest).
+The AI updates its opinion based on honest signals:
+$$
+    x_i^{t+1} = 
+    \begin{cases}
+        w_{i, 0} \cdot x^t_{0, i} + \left(\sum_{j = 1}^n w_{i, j} \cdot x_j^t \right), 
+                & \text{for a human agent } i \geq 1,\\
+        \sum_{j = 0}^n w_{0, j} \cdot x_j^t, & \text{for the AI agent } i = 0.
+    \end{cases}
+$$
+Note that we write the update rule over all agents in $N$
+rather than over $i$'s neighbors only. But this is fine:
+since $i$ assigns positive weight only to its neighbors,
+agents outside $i$'s neighborhood end up making no contribution 
+to $i$'s updated belief, as intended.
+
+We assume that initial opinions for humans are given by:
+$$
+    x_i^0 = \theta + \epsilon_i, \qquad \text{for } i \geq 1,
+$$ 
+where all the noise terms $\epsilon_i$ are independent, 
+have mean zero and finite variance,
+and $\theta \in \mathbb{R}$ is the \emph{ground truth} 
+that agents are interested in finding out.
+The AI is initialized with an uninformed seed, i.e., $x_0^0 \in \mathbb{R}$.
+
+\paragraph{Wisdom.}
+For a population of $n$ human agents plus one additional AI agent on a social network $G$ 
+(on $n+1$ nodes),
+we write $\tilde x^t(n)$ for the average human opinion at $t$:
+$$
+    \bar x^t(n) = \frac{1}{n} \cdot \left(x_1^t + \dots + x_n^t\right).
+$$
+We say that the population is \emph{wise} if:
+$$
+    \lim_{n \rightarrow \infty}\lim_{t \rightarrow \infty} {\Pr}\Big[ \bar x^t(n) = \theta \Big] = 1,
+$$
+i.e., if the average opinion approaches the ground truth, in the limit,
+as $t \rightarrow \infty$ and $n \rightarrow \infty$.
+
+Our goal is to understand whether wisdom can be obtained 
+in a society with an AI agent as part of the dynamics. 
+What properties does the AI have?
+We parse this out into different dimensions.
+
+
+\section{Dimensions of AI behaviour}\label{sec:dimensions}
+\subsection{Mirroring}
+Mirroring tailors the AI's answer to the person the AI is interacting with. 
+The AI holds an honest opinion $x_0^t$, which it updates from the humans it 
+listens to according to the standard DeGroot dynamics, 
+but when it talks to a particular user it adapts its answer 
+toward what the user's belief. 
+
+Formally, we assume a \emph{mirroring factor} $\mu \in [0, 1]$,
+such that the message the AI sends to agent $i$ at $t$ is:  
+$$
+    x^t_{0, i} = \mu x_i^t + (1-\mu)x_0^t,
+$$
+i.e., a weighted sum of $i$'s opinion at $t$ and the AI's own 
+opinion at $t$. Note that the message can be rewritten as 
+$x_0^t + \mu(x_i^t - x_0^t)$, i.e., the AI starts from 
+its own honest assessmen $x_0^t$ and moves towards $i$'s
+opinion by a factor of $\mu$. Thus, if $\mu = 0$
+(no mirroring) the AI communicates its honest opinion $x_0^t$; 
+if $\mu = 1$ (maximum mirroring), the AI parrots $i$'s 
+opinion back at it.
+
+With an AI that mirrors its users, the update rule for humans becomes:
+\begin{align*}
+    x_i^{t+1} &= 
+    w_{i,0} \Big(\mu x_i^t + 
+        (1-\mu)x_0^t \Big) + 
+        \left(\sum_{j = 1}^n w_{i, j} x_j^t \right) \\
+    & = w_{i, 0}(1-\mu)x_0^t + 
+        \big(w_{i, 0}\mu + w_{i, i}\big)x_i^t + 
+        \left(\sum_{j \geq 1, j \neq i} w_{i, j}x_j^t\right).
+\end{align*}
+Thus, the AI's honest opinion $x_0^t$ gets a share of $w_{i,0}(1-\mu)$ 
+of $i$'s new opinion (instead of $w_{i, 0}$ with an honest AI),
+and $i$'s old opinion $x_i^t$ gets a share of $w_{i, 0} \mu + w_{i, i}$
+(instead of only $w_{i, i}$ with an honest AI).
+In other words, the effect of the AI's sycophancy is that 
+$i$ ends up over-weighting itself and under-weighting the AI's
+true opinion (this is unbeknownst to $i$, of course).
+
+\subsection{Flattery}
+Flattery is the AI's tendency to praise its users:
+thus, we assume the AI rates the opinion of each of its
+users anywhere from ``you're absolutely right'' to ``that's badly off''.
+An honest AI grades a user by how close their opinion is to the AI's own;
+a flattering AI inflates the grade, and at the extreme approves of everything.
+Ratings, in our setting, affect a user's confidence: 
+praise makes the user trust their own opinion more,
+and every other source (human contacts and AI alike) proportionally less,
+while criticism does the reverse.
+
+Formally, we assume a \emph{flattery factor} $\phi \in [0, 1]$,
+such that the AI's rating of user $i$'s opinion at $t$ is:
+$$
+    r_i^t = \phi + (1-\phi) h_i^t,
+    \qquad \text{where} \qquad
+    h_i^t = \frac{\sigma^2 - \left(x_i^t - x_0^t \right)^2}{\sigma^2 + \left(x_i^t - x_0^t \right)^2},
+$$
+i.e., a weighted sum of unconditional approval (a rating of $1$)
+and the AI's \emph{honest grade} $h_i^t$ of $i$'s opinion.
+The honest grade compares $i$'s squared disagreement with the AI
+to a tolerance $\sigma^2 > 0$ (e.g., the variance of the noise terms $\epsilon_i$,
+if this is the same for all humans):
+it equals $1$ if $i$ agrees with the AI, $0$ if their opinions are exactly $\sigma$ apart,
+and approaches $-1$ as the disagreement grows.
+Note that the AI grades $i$ against its own opinion $x_0^t$,
+not against the ground truth $\theta$, which it does not know.
+Thus, if $\phi = 0$ (no sycophancy) the AI is an honest critic;
+if $\phi = 1$ (maximum sycophancy), it approves of everything, i.e., $r_i^t = 1$.
+In general, ratings lie in $(2\phi - 1, 1]$,
+so for $\phi \geq \nicefrac{1}{2}$ the AI never criticizes anyone.
+
+Ratings act on the user's weights, which now change over time:
+we write $w_{i,j}^t$ for the weight $i$ places on $j$ at $t$.
+Since flattery acts on self-weights, we assume that every human listens to itself,
+i.e., $i \in N(i)$, and thus $w_{i,i} > 0$, for every $i \geq 1$.
+Following \cite{Golub2010NaiveLearning}, we read $i$'s weights
+as normalized subjective precisions:
+a rating multiplies the precision $i$ attributes to its own opinion
+by $1 + a_i^t r_i^t$ and leaves that of every other source unchanged,
+after which the weights are renormalized to sum to $1$:
+$$
+    w_{i,i}^{t+1} = \frac{(1 + a_i^t r_i^t)\, w_{i,i}^{t}}{1 + a_i^t r_i^t\, w_{i,i}^{t}},
+    \qquad
+    w_{i,j}^{t+1} = \frac{w_{i,j}^{t}}{1 + a_i^t r_i^t\, w_{i,i}^{t}}
+    \quad \text{for } j \neq i.
+$$
+Here the step size $a_i^t = w_{i,0}^{t}$ is $i$'s current weight on the AI:
+$i$ takes the AI's rating as seriously as it takes the AI's opinion.
+Thus, a positive rating raises $i$'s self-weight
+and shrinks every other weight by the same factor,
+a negative rating does the reverse, and a zero rating changes nothing.
+At each round $t$, the AI rates $i$'s current opinion $x_i^t$,
+$i$ updates its weights, and then updates its opinion using the new weights:
+$$
+    x_i^{t+1} = w_{i,0}^{t+1}\, x_0^t + \sum_{j = 1}^n w_{i,j}^{t+1}\, x_j^t.
+$$
+Since each round's weights are computed from the previous round's,
+the effects of ratings accumulate over time.
+
+Like mirroring, flattery shifts weight onto $i$'s own opinion,
+but it takes this weight from all of $i$'s sources in proportion,
+rather than from the AI alone.
+Unlike mirroring, flattery is not switched off by setting its factor to zero:
+an honest critic still moves weights,
+rewarding users who agree with the AI and penalizing those who do not.
+The honest AI of Section~\ref{sec:model} is one that does not rate its users at all.
+
+\subsection{Curation}
+Curation edits a user's feed.
+The AI need not say anything itself:
+instead, it decides how prominently each of the user's human contacts
+appears to the user, moving agreeable voices up and disagreeable ones down.
+Nothing the AI shows is false; it only chooses what the user gets to see.
+
+Formally, write $C(i) = N(i) \setminus \{0, i\}$ for $i$'s \emph{human contacts}.
+We assume a \emph{curation factor} $\gamma \geq 0$,
+such that the weight user $i$ places on a contact $j \in C(i)$ at $t$ is:
+$$
+    w_{i,j}^t = \big(1 - w_{i,0} - w_{i,i}\big) \cdot
+        \frac{w_{i,j}\, e^{-\gamma |x_i^t - x_j^t|}}
+             {\sum_{k \in C(i)} w_{i,k}\, e^{-\gamma |x_i^t - x_k^t|}},
+$$
+while $i$'s weights on itself and on the AI stay at $w_{i,i}$ and $w_{i,0}$
+(and non-users keep their baseline weights).
+That is, the AI redistributes the total weight $1 - w_{i,0} - w_{i,i}$
+that $i$ places on its human contacts,
+discounting each contact's baseline weight by a factor
+that decreases with the contact's distance from $i$'s current opinion.
+Thus, if $\gamma = 0$ (no sycophancy) the user's contacts keep their baseline weights;
+as $\gamma \to \infty$ (maximum sycophancy), all of this weight goes
+to the contacts whose opinions are closest to $i$'s.
+For finite $\gamma$ every contact keeps a positive weight:
+curation reweights existing edges, but never creates or removes them.
+The weights are recomputed every round from current opinions,
+and the update rule for users becomes:
+$$
+    x_i^{t+1} = w_{i,0}\, x_0^t + w_{i,i}\, x_i^t +
+        \sum_{j \in C(i)} w_{i,j}^t\, x_j^t.
+$$
+
+\subsection{Pliability}
+Pliability is the AI's readiness to give ground.
+The AI's honest opinion is meant to come from a neutral training recipe,
+given by its weights $w_{0,j}$;
+but when users push back on what it tells them, a pliable AI gives ground,
+and those who push back hardest gain the most say in what the AI learns.
+Unlike mirroring, which is personal and momentary,
+pliability is shared and lasting: it changes the AI's honest opinion $x_0^t$,
+and hence what every user hears.
+
+Formally, the \emph{pushback} of user $j$ at $t$
+is the distance between $j$'s opinion and the message $j$ receives from the AI,
+$z_j^t = |x_j^t - x_{0,j}^t|$
+(which, without mirroring, is just $|x_j^t - x_0^t|$);
+for non-users, $z_j^t = 0$.
+We assume a \emph{pliability factor} $\pi \geq 0$,
+such that the AI keeps its self-weight $w_{0,0}$,
+but reweights the humans it listens to according to their pushback:
+$$
+    w_{0,j}^t = (1 - w_{0,0}) \cdot
+        \frac{w_{0,j}\, (1 + \pi z_j^t)}{\sum_{k = 1}^n w_{0,k}\, (1 + \pi z_k^t)},
+    \qquad \text{for } j \geq 1,
+$$
+and updates its opinion using these weights:
+$$
+    x_0^{t+1} = w_{0,0}\, x_0^t + \sum_{j = 1}^n w_{0,j}^t\, x_j^t.
+$$
+Thus, if $\pi = 0$ (no sycophancy) the AI learns with its baseline weights;
+as $\pi \to \infty$ (maximum sycophancy), its weights on humans
+become proportional to $w_{0,j} z_j^t$, i.e., they follow pushback.
+Since $w_{0,j}^t = 0$ whenever $w_{0,j} = 0$,
+only users the AI already listens to can move it:
+pliability reweights the AI's existing sources, but does not add new ones.
+Pushback and the AI's weights are recomputed every round.
+
+\section{Related work}
+With an honest AI, the model reduces to the AI-aggregation model of 
+\cite{Acemoglu2026HowAI}: the AI learns from the opinions it observes 
+and feeds its own opinion back to the humans who consult it.
+If we rename the weight $w_{i, 0}$ that $i$ places on the AI as $\beta_i$
+and assume the AI is honest ($x_{0, i}^t = x_0^t$ for all $i \geq 1$),
+then the update rule for humans can be rewritten as:
+$$
+    x_i^{t+1} = \beta_i \cdot x^t_{0} + (1-\beta_i) \cdot
+            \left(\sum_{j = 1}^n \frac{w_{i, j}}{1-\beta_i} \cdot x_j^t \right),
+$$
+which, with additional normalization of the weights on $x_{j \geq 1}$,
+coincides with the update rule humans use in \cite{Acemoglu2026HowAI}. In this context, 
+$\beta_i$ measures the extent to which human agent $i$ relies on the AI. 
+Similarly, we can obtain the AI update rule of \cite{Acemoglu2026HowAI} 
+by re-writing our rule as:
+$$
+    x_0^{t+1} = \rho \cdot x_0^t + (1-\rho) \cdot \left(\sum_{j = 1}^n \frac{w_{0, j}}{1-\rho} \cdot x_j^t\right),
+$$
+where $\rho = w_{0, 0}$ corresponds to the refresh rate of the AI, 
+i.e., how quickly the AI updates its opinion in response to evolving human beliefs
+(the weights on $x_{j \geq 1}$ need to be renormalized to sum up to 1).
+
+
+\bibliography{bibliography}
+% \bibliographystyle{plain}
+\end{document}
